@@ -3,28 +3,47 @@
     <head>
         <meta charset="utf-8">
 		<title>book</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com"> 
+        <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
         <script src = "keymappings.js"></script>
-		<style>
-			body { margin: 0; }
-		</style>
     </head>
     <body>
+        <div id = "info">
+            <h2>Name</h3>
+            <p>Author</p>
+            <hr>
+            <text>Text</text>
+        </div>
         <canvas id = "c"></canvas>
     </body>
     <script type = "module">
         import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+        import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+
 
         const json = {
             "books": [
                 {
                 "name": "Sapiens A Brief History of Humankind",
                 "author": "Yuval Noah Harari", 
-                "cover": "http://covers.openlibrary.org/b/ISBN/9780099590088-L.jpg"
+                "cover": "http://covers.openlibrary.org/b/ISBN/9780099590088-L.jpg",
+                "text": ""
                 },
                 {
                 "name": "Homo Deus A Brief History of Tomorrow",
                 "author": "Yuval Noah Harari", 
-                "cover": "http://covers.openlibrary.org/b/ISBN/9780062464347-L.jpg"
+                "cover": "http://covers.openlibrary.org/b/ISBN/9780062464347-L.jpg",
+                "text": ""
+                },
+                {
+                "name": "Homo 21 Lessons for the 21st Century",
+                "author": "Yuval Noah Harari", 
+                "cover": "http://covers.openlibrary.org/b/ISBN/978178470828-3-L.jpg",
+                "text": "How can we protect ourselves from nuclear war, ecological cataclysms and technological disruptions?"+ 
+                "What can we do about the epidemic of fake news or the threat of terrorism? What should we teach our children?"+
+                "Yuval Noah Harari takes us on a thrilling journey through today's most urgent issues. The golden thread running"+ 
+                "through his exhilarating new book is the challenge of maintaining our collective and individual focus in the face of constant and disorienting change. "+
+                "Are we still capable of understanding the world we have created?"
                 }]
         };
 
@@ -32,8 +51,24 @@
         let scene;
         let camera;
         let books = [];
+        let controls;
 
         const bookOffset = 10; //distance between two books
+        const bookHeight = 10;
+        const bookWidth = 6.5;
+        const bookDepth = 0.5;
+        let bookIndex = 0;
+
+        function updateInfo(){
+            const name = document.querySelector('#info h2');
+            const author = document.querySelector('#info p');
+            const text = document.querySelector('#info text');
+
+            const book = json["books"][bookIndex];
+            name.textContent = book.name;
+            author.textContent = book.author;
+            text.textContent = book.text;
+        }
 
         //resize drawingbuffer size (canvas internal resolution)
         function resizeRendererToDisplaySize(renderer) {
@@ -57,10 +92,6 @@
                     camera.aspect = canvas.clientWidth / canvas.clientHeight;
                     camera.updateProjectionMatrix();
                 }
-
-                /*books.forEach((book)=>{
-                    book.rotation.y += Math.PI * 0.001;
-                })*/
                 
                 renderer.render(scene, camera);
                 
@@ -70,16 +101,15 @@
         function addBooks(scene, textureLoader){
             let x = 0;
             json["books"].forEach((book)=> {
-                console.log(book);
-                const geometry = new THREE.BoxGeometry(7,10,0.5);
+                const geometry = new THREE.BoxGeometry(bookWidth,bookHeight,bookDepth);
 
                 const materials = [
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}), //bottom/top?
-                    new THREE.MeshPhongMaterial({map: textureLoader.load(book.cover)}),
-                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}), //back
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //bottom/top?
+                    new THREE.MeshStandardMaterial({map: textureLoader.load(book.cover)}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //back
                 ];
 
                 const mesh = new THREE.Mesh(geometry, materials);
@@ -97,7 +127,7 @@
 
         function init(){
             scene = new THREE.Scene();
-            scene.background = new THREE.Color('grey');
+            scene.background = new THREE.Color('white');
 
             camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
             camera.position.set(0, 5, 20);
@@ -106,22 +136,19 @@
             renderer = new THREE.WebGLRenderer({canvas});
             renderer.physicallyCorrectLights = true;
 
+            //controls = new THREE.OrbitControls(camera, renderer.domElement);
+            //controls.update();
+
             
             const color = 0xFFFFFF;
-            const intensity = 1;
-            const light = new THREE.PointLight(color, intensity);
-            light.power = 4000;
-            light.decay = 1.6;
-
-            light.position.x = 0;
-            light.position.y = 5;
-            light.position.z = 20;
-
-            /*const helper = new THREE.PointLightHelper(light);
-            scene.add(helper);*/
+            const intensity = 11;
+            const width = bookWidth * 1.5;
+            const height = bookHeight * 2;
+            const light = new THREE.RectAreaLight(color, intensity, width, height);
+            light.rotation.x = THREE.MathUtils.degToRad(-45);
+            light.position.set(0, 20, 20);
 
             scene.add(light);
-            scene.add(light.target);
 
             window.addEventListener("keydown", function(){
                 var keyCode = event.keyCode;
@@ -130,6 +157,8 @@
                         if(camera.position.x > 0){
                             camera.position.x -= bookOffset;
                             light.position.x -= bookOffset;
+                            bookIndex -= 1;
+                            updateInfo();
                         }
                         break;
                     }
@@ -137,6 +166,8 @@
                         if(camera.position.x < (books.length-1) * bookOffset){
                             camera.position.x += bookOffset;
                             light.position.x += bookOffset;
+                            bookIndex += 1;
+                            updateInfo();
                         }
                         break;
                     }
@@ -145,12 +176,34 @@
 
             const textureLoader = new THREE.TextureLoader();
             addBooks(scene, textureLoader);
+
+            {
+                const height = 1.5;
+                const depth = 5;
+                const width = (bookWidth + bookOffset) * books.length - bookOffset;
+                console.log(width);
+                const geo = new THREE.BoxGeometry(width,height,depth);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0xFFFFFF,
+                    side: THREE.DoubleSide
+                });
+    
+                const mesh = new THREE.Mesh(geo, mat);
+
+                mesh.position.x = width / books.length;
+                mesh.position.y = -height;
+                mesh.position.z = -(depth/2) - 1;
+
+                scene.add(mesh);
+            }
   
 
 
             //draw x,y,z axes
             //const axesHelper = new THREE.AxesHelper( 5 );
             //scene.add( axesHelper );
+
+            updateInfo();
 
             requestAnimationFrame(animate);
         }
@@ -160,10 +213,20 @@
     <style>
         html, body {
            margin: 0;
+           width: 100%;
            height: 100%;
+           display: flex;
+           font-family: 'Merriweather', serif;
+        }
+        #info{
+            width: 40%;
+            height: calc(100% - 128px);
+            padding: 64px 32px;
+            box-shadow: 2px 2px 6px 6px rgba(0,0,0,0.15);d
+            z-index: 5;
         }
         #c {
-           width: 100%;
+           width: 60%;
            height: 100%;
            display: block;
         }
