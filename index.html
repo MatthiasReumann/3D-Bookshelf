@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
 		<title>book</title>
+        <script src = "keymappings.js"></script>
 		<style>
 			body { margin: 0; }
 		</style>
@@ -11,47 +12,28 @@
         <canvas id = "c"></canvas>
     </body>
     <script type = "module">
-        import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js'; 
-        //import { FirstPersonControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/FirstPersonControls.js';
-        //import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+        import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+
+        const json = {
+            "books": [
+                {
+                "name": "Sapiens A Brief History of Humankind",
+                "author": "Yuval Noah Harari", 
+                "cover": "http://covers.openlibrary.org/b/ISBN/9780099590088-L.jpg"
+                },
+                {
+                "name": "Homo Deus A Brief History of Tomorrow",
+                "author": "Yuval Noah Harari", 
+                "cover": "http://covers.openlibrary.org/b/ISBN/9780062464347-L.jpg"
+                }]
+        };
 
         let renderer;
         let scene;
         let camera;
-        let cameraControl;
+        let books = [];
 
-        class CameraControl{
-            constructor(camera, x, y, z){
-                this.camera = camera;
-                this.x = x;
-                this.y = y;
-                this.z = z;
-            }
-
-            update(){
-                this.camera.position.set(this.x, this.y, this.z);
-            }
-        }
-
-        function addKeyboardHandlers(){
-            window.addEventListener("keydown", function(){
-                var keyCode = event.keyCode;
-                switch (keyCode) {
-                    case 68: //d
-                    console.log("d");
-                    break;
-                    case 83: //s
-                    console.log("s");
-                    break;
-                    case 65: //a
-                    console.log("a");
-                    break;
-                    case 87: //w
-                    console.log("w");
-                    break;
-                }
-            }, false);
-        }
+        const bookOffset = 10; //distance between two books
 
         //resize drawingbuffer size (canvas internal resolution)
         function resizeRendererToDisplaySize(renderer) {
@@ -76,48 +58,104 @@
                     camera.updateProjectionMatrix();
                 }
 
-                cameraControl.update();
+                /*books.forEach((book)=>{
+                    book.rotation.y += Math.PI * 0.001;
+                })*/
                 
                 renderer.render(scene, camera);
                 
                 requestAnimationFrame(animate);
         }
 
-        function main(){
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color('lightgrey');
+        function addBooks(scene, textureLoader){
+            let x = 0;
+            json["books"].forEach((book)=> {
+                console.log(book);
+                const geometry = new THREE.BoxGeometry(7,10,0.5);
 
-            camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
-            camera.position.set(0, 50, 100);
+                const materials = [
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}), //bottom/top?
+                    new THREE.MeshPhongMaterial({map: textureLoader.load(book.cover)}),
+                    new THREE.MeshPhongMaterial({color: 0xFFFFFF}), //back
+                ];
+
+                const mesh = new THREE.Mesh(geometry, materials);
+                mesh.position.x = x;
+                mesh.position.y = 5;
+                mesh.position.z = 0;
+
+                books.push(mesh);
+
+                scene.add(mesh);
+
+                x += bookOffset;
+            });     
+        }
+
+        function init(){
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color('grey');
+
+            camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
+            camera.position.set(0, 5, 20);
             
             const canvas = document.querySelector('#c');
             renderer = new THREE.WebGLRenderer({canvas});
-            //renderer.physicallyCorrectLights = true;
+            renderer.physicallyCorrectLights = true;
 
-            cameraControl = new CameraControl(camera, 0, 0, 0)
-            cameraControl.update();
+            
+            const color = 0xFFFFFF;
+            const intensity = 1;
+            const light = new THREE.PointLight(color, intensity);
+            light.power = 4000;
+            light.decay = 1.6;
 
-            addKeyboardHandlers();
+            light.position.x = 0;
+            light.position.y = 5;
+            light.position.z = 20;
 
+            /*const helper = new THREE.PointLightHelper(light);
+            scene.add(helper);*/
 
-            {
-                const geometry = new THREE.BoxGeometry(10, 10, 10);
-                const mat = new THREE.MeshBasicMaterial({color: 'blue'});
+            scene.add(light);
+            scene.add(light.target);
 
-                const mesh = new THREE.Mesh(geometry, mat);
-                mesh.position.set(0,0,0);
-                scene.add(mesh);
-            }
+            window.addEventListener("keydown", function(){
+                var keyCode = event.keyCode;
+                switch (keyCode) {
+                    case KEYS.LEFT:{
+                        if(camera.position.x > 0){
+                            camera.position.x -= bookOffset;
+                            light.position.x -= bookOffset;
+                        }
+                        break;
+                    }
+                    case KEYS.RIGHT:{
+                        if(camera.position.x < (books.length-1) * bookOffset){
+                            camera.position.x += bookOffset;
+                            light.position.x += bookOffset;
+                        }
+                        break;
+                    }
+                }
+            }, false);
+
+            const textureLoader = new THREE.TextureLoader();
+            addBooks(scene, textureLoader);
+  
 
 
             //draw x,y,z axes
-            const axesHelper = new THREE.AxesHelper( 5 );
-            scene.add( axesHelper );
+            //const axesHelper = new THREE.AxesHelper( 5 );
+            //scene.add( axesHelper );
 
             requestAnimationFrame(animate);
         }
 
-        main();
+        init();
     </script>
     <style>
         html, body {
