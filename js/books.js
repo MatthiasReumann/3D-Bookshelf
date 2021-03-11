@@ -2,48 +2,57 @@ const json = {
     "books":
     [{
         "isbn":"9780099590088",
-        "title": "Sapiens",
+        "title": "Sapiens A Brief History of Humandkind",
         "author":"Yuval Noah Harari",
+        "description":""
     },
     {
         "isbn":"9780062464347",
-        "title": "Homo Deus",
+        "title": "Homo Deus A Brief History of Tomorrow",
         "author":"Yuval Noah Harari",
+        "description":""
     },
     {
         "isbn":"9781784708283",
         "title": "21 Lessons For the 21st Century",
         "author":"Yuval Noah Harari",
+        "description":""
     },
     {
         "isbn":"9781781251492",
         "title": "Obstacle Is The Way",
         "author":"Ryan Holiday",
+        "description":""
     },
     {
         "isbn":"9780525538585",
         "title": "Stillness Is The Key",
         "author":"Ryan Holiday",
+        "description":""
     },
     {
         "isbn":"9781781257029",
         "title": "Ego Is The Enemy",
         "author":"Yuval Noah Harari",
+        "description":""
     },
     {
         "isbn":"9780525541875",
         "title": "Lives of the Stoics",
         "author":"Ryan Holiday",
+        "description":""
     },
     {
         "isbn":"9783462037043",
         "title": "Limit",
         "author":"Frank Schätzing",
+        "description":""
     },
     {
         "isbn":"9783462050844",
         "title": "Die Tyrannei des Schmetterlings",
         "author":"Frank Schätzing",
+        "description":""
     },
     {
         "isbn":"9783462033748",

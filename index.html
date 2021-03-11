@@ -6,6 +6,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com"> 
         <script src="https://kit.fontawesome.com/54e1b2dfec.js" crossorigin="anonymous"></script>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+        <script   src="https://code.jquery.com/jquery-3.6.0.js"   integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="   crossorigin="anonymous"></script>  
         <script src = "js/keymappings.js"></script>
         <script src = "js/books.js"></script>
         <link rel = "stylesheet" href = "style.css">
@@ -15,6 +16,7 @@
             <div id = "head">
                 <p>Author</p>
                 <h1>Name</h3>
+                <span>isbn</span>
             </div>
             <text>Text</text>
         </div>
@@ -50,12 +52,14 @@
         function updateInfo(){
             const title = document.querySelector('#info h1');
             const author = document.querySelector('#info p');
-            const text = document.querySelector('#info text');
+            const description = document.querySelector('#info text');
+            const isbn = document.querySelector('#info span');
 
             const book = data[bookIndex];
             title.textContent = book.title;
             author.textContent = book.author;
-            text.textContent = book.text;
+            description.textContent = book.description;
+            isbn.textContent = book.isbn;
         }
 
         //resize drawingbuffer size (canvas internal resolution)
@@ -71,18 +75,49 @@
                 return needResize;
         }
 
+        function setDesc(isbn, callback){
+            const base_url = "https://openlibrary.org/";
+
+            const isbn_url = `${base_url}/isbn/${isbn}.json`;
+            console.log("set");
+            $.get(isbn_url, (isbn_res)=>{
+                const work_path = isbn_res.works[0].key;
+                if(work_path){
+                    const work_url = `${base_url}/${work_path}.json`;
+                    console.log(work_url);
+                    $.get(work_url, (work_res)=>{
+                        console.log(work_res.description);
+                        if(work_res.description){
+                            if(typeof work_res.description === 'object'){
+                                callback(work_res(work_res.description.value));
+                            }else{
+                                callback(work_res.description);
+                            }
+                        }else{
+                            callback("No description found");
+                        }
+                    })
+                }
+            });
+        }
+
         function addBooks(scene, textureLoader){
             let x = 0;
             data.forEach((book)=> {
                 const geometry = new THREE.BoxGeometry(bookWidth,bookHeight,bookDepth);
-                const url = getCoverURL(book.isbn);
-                console.log(url);
+                const cover_url = getCoverURL(book.isbn);
+
+                setDesc(book.isbn, (desc)=>{
+                    book.description = desc;
+                    updateInfo();
+                });
+                
                 const materials = [
                     new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
                     new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
                     new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
                     new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //bottom/top?
-                    new THREE.MeshStandardMaterial({map: textureLoader.load(url)}),
+                    new THREE.MeshStandardMaterial({map: textureLoader.load(cover_url)}),
                     new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //back
                 ];
 
@@ -96,7 +131,7 @@
                 scene.add(mesh);
 
                 x += bookOffset;
-            });     
+            });   
         }
 
         function moveLights(offset){
