@@ -1,7 +1,7 @@
 # 3D-Bookshelf
 3D Bookshelf powered by three.js
 
-![showcase](showcase.png)
+![showcase](showcase.jpg)
 
 ## Things to improve (or "Things I will probably never improve")
 * Lighting sucks
