@@ -49,6 +49,41 @@ const json = {
         "isbn":"9783462033748",
         "title": "Der Schwarm",
         "author":"Frank Schätzing",
+    },
+    {
+        "isbn":"9780241367698",
+        "title": "Blueprint",
+        "author":"Robert Plomin",
+    },
+    {
+        "isbn":"9780316392013",
+        "title": "Origin Story",
+        "author":"Christian David",
+    },
+    {
+        "isbn":"9781524722746",
+        "title": "Power Of Habit",
+        "author":"Christian David",
+    },
+    {
+        "isbn":"9780316392013",
+        "title": "Origin Story",
+        "author":"Charles Duhigg",
+    },
+    {
+        "isbn":"9788366071414",
+        "title": "Leonardo da Vinci",
+        "author":"Walter Isaacson",
+    },
+    {
+        "isbn":"9781451648539",
+        "title": "Steve Jobs",
+        "author":"Walter Isaacson",
+    },
+    {
+        "isbn":"9781508279310",
+        "title": "Why We Sleep",
+        "author":"Matthew Walker",
     }]
 };
 
