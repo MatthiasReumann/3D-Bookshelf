@@ -4,17 +4,13 @@
         <meta charset="utf-8">
 		<title>book</title>
         <link rel="preconnect" href="https://fonts.gstatic.com"> 
+        <script src="https://kit.fontawesome.com/54e1b2dfec.js" crossorigin="anonymous"></script>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
         <script src = "js/keymappings.js"></script>
         <script src = "js/books.js"></script>
         <link rel = "stylesheet" href = "style.css">
     </head>
     <body>
-        <!--
-        <div id = "hud">
-            <i class="far fa-caret-square-right"></i>
-            <i class="far fa-caret-square-left"></i>
-        </div>-->
         <div id = "info">
             <div id = "head">
                 <p>Author</p>
@@ -22,7 +18,16 @@
             </div>
             <text>Text</text>
         </div>
-        <canvas id = "c"></canvas>
+        <div id = "wrapper">
+            <div id = "hud">
+                <p>switch books</p>
+                <div class = "flex">
+                    <i class="far fa-caret-square-left"></i>
+                    <i class="far fa-caret-square-right"></i>
+                </div>
+            </div>
+            <canvas id = "c"></canvas>
+        </div>
     </body>
     <script type = "module">
         import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
