@@ -6,7 +6,7 @@ html, body {
     font-family: 'Noto Sans', sans-serif;
  }
  #info{
-     width: 30%;
+     width: 35%;
      height: calc(100% - 128px);
      padding: 64px 32px;
      box-shadow: 2px 2px 6px 6px rgba(0,0,0,0.15);
@@ -44,7 +44,7 @@ html, body {
  }
 
  #wrapper{
-     width: 70%;
+     width: 65%;
      height: 100%;
      position: relative;
  }
