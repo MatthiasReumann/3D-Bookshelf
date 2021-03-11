@@ -4,68 +4,51 @@
         <meta charset="utf-8">
 		<title>book</title>
         <link rel="preconnect" href="https://fonts.gstatic.com"> 
-        <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-        <script src = "keymappings.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+        <script src = "js/keymappings.js"></script>
+        <script src = "js/books.js"></script>
+        <link rel = "stylesheet" href = "style.css">
     </head>
     <body>
+        <!--
+        <div id = "hud">
+            <i class="far fa-caret-square-right"></i>
+            <i class="far fa-caret-square-left"></i>
+        </div>-->
         <div id = "info">
-            <h2>Name</h3>
-            <p>Author</p>
-            <hr>
+            <div id = "head">
+                <p>Author</p>
+                <h1>Name</h3>
+            </div>
             <text>Text</text>
         </div>
         <canvas id = "c"></canvas>
     </body>
     <script type = "module">
         import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
-        import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+        /*import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+        import {RectAreaLightUniformsLib} from 'https://unpkg.com/three@0.126.1/examples/jsm/lights/RectAreaLightUniformsLib.js';
+        import {RectAreaLightHelper} from 'https://unpkg.com/three@0.126.1/examples/jsm/helpers/RectAreaLightHelper.js';*/
 
+        let renderer, scene, camera;
+        let books = [], lights = [];
 
-        const json = {
-            "books": [
-                {
-                "name": "Sapiens A Brief History of Humankind",
-                "author": "Yuval Noah Harari", 
-                "cover": "http://covers.openlibrary.org/b/ISBN/9780099590088-L.jpg",
-                "text": ""
-                },
-                {
-                "name": "Homo Deus A Brief History of Tomorrow",
-                "author": "Yuval Noah Harari", 
-                "cover": "http://covers.openlibrary.org/b/ISBN/9780062464347-L.jpg",
-                "text": ""
-                },
-                {
-                "name": "Homo 21 Lessons for the 21st Century",
-                "author": "Yuval Noah Harari", 
-                "cover": "http://covers.openlibrary.org/b/ISBN/978178470828-3-L.jpg",
-                "text": "How can we protect ourselves from nuclear war, ecological cataclysms and technological disruptions?"+ 
-                "What can we do about the epidemic of fake news or the threat of terrorism? What should we teach our children?"+
-                "Yuval Noah Harari takes us on a thrilling journey through today's most urgent issues. The golden thread running"+ 
-                "through his exhilarating new book is the challenge of maintaining our collective and individual focus in the face of constant and disorienting change. "+
-                "Are we still capable of understanding the world we have created?"
-                }]
-        };
-
-        let renderer;
-        let scene;
-        let camera;
-        let books = [];
-        let controls;
+        const data = getBooks().books;
 
         const bookOffset = 10; //distance between two books
         const bookHeight = 10;
         const bookWidth = 6.5;
-        const bookDepth = 0.5;
+        const bookDepth = 1;
+
         let bookIndex = 0;
 
         function updateInfo(){
-            const name = document.querySelector('#info h2');
+            const title = document.querySelector('#info h1');
             const author = document.querySelector('#info p');
             const text = document.querySelector('#info text');
 
-            const book = json["books"][bookIndex];
-            name.textContent = book.name;
+            const book = data[bookIndex];
+            title.textContent = book.title;
             author.textContent = book.author;
             text.textContent = book.text;
         }
@@ -83,6 +66,132 @@
                 return needResize;
         }
 
+        function addBooks(scene, textureLoader){
+            let x = 0;
+            data.forEach((book)=> {
+                const geometry = new THREE.BoxGeometry(bookWidth,bookHeight,bookDepth);
+                const url = getCoverURL(book.isbn);
+                console.log(url);
+                const materials = [
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //bottom/top?
+                    new THREE.MeshStandardMaterial({map: textureLoader.load(url)}),
+                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //back
+                ];
+
+                const mesh = new THREE.Mesh(geometry, materials);
+                mesh.position.x = x;
+                mesh.position.y = 6;
+                mesh.position.z = 0;
+
+                books.push(mesh);
+
+                scene.add(mesh);
+
+                x += bookOffset;
+            });     
+        }
+
+        function moveLights(offset){
+            lights.forEach((light)=>{
+                light.position.x += offset;
+            })
+        }
+
+        function addLights(scene){
+            const color = 0xFFFFFF;
+            const intensity = 3.8;
+            const width = 100;
+            const height = 40;
+
+            const light_left = new THREE.RectAreaLight(color, intensity, width, height);
+            light_left.position.set(0, 10, 75);
+            light_left.rotation.x = Math.PI * -.25; //45 degrees
+
+            const light_right = new THREE.RectAreaLight(color, intensity, width, height);
+            light_right.position.set(width + 10, 10, 75);
+            light_right.rotation.x = Math.PI * -.25; //45 degrees
+            const light_top_left = new THREE.RectAreaLight(color, intensity, width, height);
+            light_top_left.position.set(0, 70, 25);
+            light_top_left.rotation.x = Math.PI * -.5; //90 degrees
+
+            const light_top_right = new THREE.RectAreaLight(color, intensity, width, height);
+            light_top_right.position.set(width + 10, 70, 25);
+            light_top_right.rotation.x = Math.PI * -.5; //90 degrees
+
+            scene.add(light_left);
+            scene.add(light_right);
+            scene.add(light_top_left);
+            scene.add(light_top_right);
+
+            lights.push(light_right);
+            lights.push(light_left);
+            lights.push(light_top_left);
+            lights.push(light_top_right);
+
+            /*const helper = new RectAreaLightHelper(light);
+            light.add(helper);
+
+            const helper_right = new RectAreaLightHelper(light_right);
+            light_right.add(helper_right);
+
+            const helper_top_left = new RectAreaLightHelper(light_top_left);
+            light_top_left.add(helper_top_left);
+
+
+            const helper_top_right = new RectAreaLightHelper(light_top_right);
+            light_top_right.add(helper_top_right);*/
+        }
+
+        function addWalls(scene){
+            {
+                const geo = new THREE.PlaneGeometry(10000,100);
+
+                const mat = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.x = 0;
+                mesh.position.y = 0;
+                mesh.position.z = -5;
+
+                scene.add(mesh);
+            }
+
+            {
+                const geo = new THREE.PlaneGeometry(10000,1000);
+
+                const mat = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.x = 0;
+                mesh.position.y = -50;
+                mesh.position.z = 0;
+
+                mesh.rotation.x = Math.PI * -0.5;
+
+                scene.add(mesh);
+            }
+        }
+
+        function addShelf(scene, num_of_books){
+            const depth = 5;
+            const height = 2;
+            const padding = 10;
+            const width = (bookWidth * num_of_books) + (bookOffset-bookWidth) * (num_of_books-1) + padding;
+
+
+            const geometry = new THREE.BoxGeometry(width,height,depth);
+            const materials = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+            const mesh = new THREE.Mesh(geometry, materials);
+            mesh.position.x = width/2 - bookWidth/2 - padding/2;
+            mesh.position.y = 0;
+            mesh.position.z = 0;
+
+            scene.add(mesh);
+        }
+
         function animate(time) {
                 time *= 0.001;  // convert time to seconds
 
@@ -98,57 +207,17 @@
                 requestAnimationFrame(animate);
         }
 
-        function addBooks(scene, textureLoader){
-            let x = 0;
-            json["books"].forEach((book)=> {
-                const geometry = new THREE.BoxGeometry(bookWidth,bookHeight,bookDepth);
-
-                const materials = [
-                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}),
-                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //bottom/top?
-                    new THREE.MeshStandardMaterial({map: textureLoader.load(book.cover)}),
-                    new THREE.MeshStandardMaterial({color: 0xFFFFFF}), //back
-                ];
-
-                const mesh = new THREE.Mesh(geometry, materials);
-                mesh.position.x = x;
-                mesh.position.y = 5;
-                mesh.position.z = 0;
-
-                books.push(mesh);
-
-                scene.add(mesh);
-
-                x += bookOffset;
-            });     
-        }
-
         function init(){
             scene = new THREE.Scene();
-            scene.background = new THREE.Color('white');
+            scene.background = new THREE.Color('grey');
 
             camera = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
-            camera.position.set(0, 5, 20);
+
+            camera.position.set(0, 10, 30);
             
             const canvas = document.querySelector('#c');
             renderer = new THREE.WebGLRenderer({canvas});
             renderer.physicallyCorrectLights = true;
-
-            //controls = new THREE.OrbitControls(camera, renderer.domElement);
-            //controls.update();
-
-            
-            const color = 0xFFFFFF;
-            const intensity = 11;
-            const width = bookWidth * 1.5;
-            const height = bookHeight * 2;
-            const light = new THREE.RectAreaLight(color, intensity, width, height);
-            light.rotation.x = THREE.MathUtils.degToRad(-45);
-            light.position.set(0, 20, 20);
-
-            scene.add(light);
 
             window.addEventListener("keydown", function(){
                 var keyCode = event.keyCode;
@@ -156,7 +225,7 @@
                     case KEYS.LEFT:{
                         if(camera.position.x > 0){
                             camera.position.x -= bookOffset;
-                            light.position.x -= bookOffset;
+                            moveLights(-bookOffset);
                             bookIndex -= 1;
                             updateInfo();
                         }
@@ -165,7 +234,7 @@
                     case KEYS.RIGHT:{
                         if(camera.position.x < (books.length-1) * bookOffset){
                             camera.position.x += bookOffset;
-                            light.position.x += bookOffset;
+                            moveLights(bookOffset);
                             bookIndex += 1;
                             updateInfo();
                         }
@@ -174,34 +243,10 @@
                 }
             }, false);
 
-            const textureLoader = new THREE.TextureLoader();
-            addBooks(scene, textureLoader);
-
-            {
-                const height = 1.5;
-                const depth = 5;
-                const width = (bookWidth + bookOffset) * books.length - bookOffset;
-                console.log(width);
-                const geo = new THREE.BoxGeometry(width,height,depth);
-                const mat = new THREE.MeshStandardMaterial({
-                    color: 0xFFFFFF,
-                    side: THREE.DoubleSide
-                });
-    
-                const mesh = new THREE.Mesh(geo, mat);
-
-                mesh.position.x = width / books.length;
-                mesh.position.y = -height;
-                mesh.position.z = -(depth/2) - 1;
-
-                scene.add(mesh);
-            }
-  
-
-
-            //draw x,y,z axes
-            //const axesHelper = new THREE.AxesHelper( 5 );
-            //scene.add( axesHelper );
+            addBooks(scene, new THREE.TextureLoader());
+            addLights(scene);
+            addWalls(scene);
+            addShelf(scene, data.length);
 
             updateInfo();
 
@@ -210,25 +255,4 @@
 
         init();
     </script>
-    <style>
-        html, body {
-           margin: 0;
-           width: 100%;
-           height: 100%;
-           display: flex;
-           font-family: 'Merriweather', serif;
-        }
-        #info{
-            width: 40%;
-            height: calc(100% - 128px);
-            padding: 64px 32px;
-            box-shadow: 2px 2px 6px 6px rgba(0,0,0,0.15);d
-            z-index: 5;
-        }
-        #c {
-           width: 60%;
-           height: 100%;
-           display: block;
-        }
-    </style>
 </html>
